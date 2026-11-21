@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leonida Clip Cutter — Auto Highlight + Subtitle Inggris buat klip GTA 6</title>
+<meta name="description" content="Potong klip GTA 6 jadi short 9:16 otomatis: cari momen paling rame dari audionya, kasih subtitle Inggris (Whisper, jalan lokal di browser), terus export video + .srt. Gratis, tanpa server, tanpa akun.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Leonida Clip Cutter — Auto Highlight + Subtitle Inggris GTA 6">
+<meta property="og:description" content="Upload klip GTA 6 lo, tool ini cari highlight-nya dari audio, transkrip jadi subtitle Inggris, export 9:16. Semua jalan lokal di browser.">
+<meta property="og:url" content="https://daniular.github.io/gta6-clip-highlighter/">
+<meta name="theme-color" content="#0d0918">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d0918'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23ff2e88' font-family='Arial' font-weight='bold'%3E%E2%9C%82%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0d0918; --card:rgba(255,255,255,.045); --line:rgba(255,255,255,.10);
+    --text:#f3eefc; --muted:#a89ec4; --pink:#ff2e88; --cyan:#22d3ee; --teal:#2dd4a7;
+    --gold:#ffd166; --danger:#ff5d5d; --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 500px at 85% -10%,rgba(255,46,136,.22),transparent 60%),
+               radial-gradient(900px 480px at -10% 10%,rgba(34,211,238,.16),transparent 60%),
+               var(--bg);
+    color:var(--text);line-height:1.55}
+  a{color:var(--cyan)}
+  .wrap{max-width:980px;margin:0 auto;padding:0 16px 72px}
+  header.hero{padding:48px 0 8px;text-align:center}
+  .eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--cyan);border:1px solid rgba(34,211,238,.4);border-radius:99px;padding:6px 14px;margin-bottom:18px}
+  h1{font-size:clamp(2rem,6.4vw,3.2rem);line-height:1.08;margin:0 0 14px;font-weight:900;letter-spacing:-.02em}
+  h1 .grad{background:linear-gradient(92deg,var(--pink) 5%,#ff7ab8 40%,var(--cyan) 85%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{max-width:680px;margin:0 auto 20px;color:var(--muted);font-size:clamp(1rem,2.6vw,1.12rem)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 22px}
+  .chip{font-size:13px;font-weight:700;padding:6px 12px;border-radius:99px;
+    background:rgba(255,255,255,.06);border:1px solid var(--line);color:#e6def7}
+  .chip b{color:var(--teal)}
+  section.card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+    border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-top:22px}
+  h2{font-size:1.3rem;margin:0 0 6px}
+  h2::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;
+    background:linear-gradient(135deg,var(--pink),var(--cyan));margin-right:10px}
+  .lede{color:var(--muted);margin:0 0 16px;font-size:.95rem}
+  .btn{display:inline-block;border:0;cursor:pointer;font:inherit;font-weight:800;font-size:15px;
+    padding:12px 20px;border-radius:12px;color:#fff;text-decoration:none;
+    background:linear-gradient(92deg,var(--pink),#b537f2);box-shadow:0 6px 24px rgba(255,46,136,.35)}
+  .btn:hover{filter:brightness(1.1)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);box-shadow:none}
+  .btn.small{padding:9px 14px;font-size:14px}
+  .btn.teal{background:linear-gradient(92deg,#0d9488,#2dd4a7);box-shadow:0 6px 24px rgba(45,212,167,.3)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+  .note{font-size:.9rem;color:var(--muted);background:rgba(255,209,102,.07);
+    border:1px solid rgba(255,209,102,.25);border-radius:12px;padding:11px 14px;margin-top:14px}
+  .note b{color:var(--gold)}
+  .status{font-size:.93rem;color:var(--muted);margin-top:10px;min-height:1.4em}
+  .status.ok{color:var(--teal)} .status.err{color:var(--danger)} .status.warn{color:var(--gold)}
+  /* dropzone */
+  .drop{border:2px dashed rgba(255,255,255,.25);border-radius:var(--radius);padding:30px 18px;
+    text-align:center;cursor:pointer;transition:.15s}
+  .drop:hover,.drop.over{border-color:var(--cyan);background:rgba(34,211,238,.06)}
+  .drop .big{font-size:1.15rem;font-weight:800}
+  .drop .small{color:var(--muted);font-size:.9rem;margin-top:6px}
+  .fileinfo{margin-top:12px;font-size:.93rem;color:var(--muted)}
+  .fileinfo b{color:var(--text)}
+  /* controls */
+  .controls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;margin-bottom:14px}
+  .ctl label{display:block;font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:6px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .seg button{font:inherit;font-weight:800;font-size:14px;padding:10px 16px;border:0;cursor:pointer;
+    background:transparent;color:var(--muted)}
+  .seg button.on{background:linear-gradient(92deg,var(--pink),#b537f2);color:#fff}
+  input[type=range]{accent-color:var(--pink);width:170px}
+  input[type=number],input[type=text]{font:inherit;color:var(--text);background:#0a0716;
+    border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:9px 11px;width:90px}
+  input[type=number]:focus,input[type=text]:focus{outline:2px solid var(--cyan);border-color:var(--cyan)}
+  .range-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .range-row label{font-size:.9rem;color:var(--muted);font-weight:700}
+  /* waveform */
+  #waveCanvas{width:100%;height:150px;display:block;background:#0a0716;border:1px solid var(--line);
+    border-radius:12px;cursor:pointer}
+  .wave-hint{font-size:.85rem;color:var(--muted);margin-top:8px}
+  /* highlight list */
+  .hl-list{display:grid;gap:10px;margin-top:14px}
+  .hl{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:rgba(255,255,255,.04);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+  .hl.sel{border-color:var(--pink);background:rgba(255,46,136,.10)}
+  .hl .rank{font-weight:900;font-size:1.25rem;color:var(--gold);min-width:30px}
+  .hl .meta{flex:1;min-width:160px}
+  .hl .meta b{font-size:1.02rem}
+  .hl .meta span{display:block;color:var(--muted);font-size:.87rem}
+  .bar{height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:6px;max-width:320px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--pink),var(--cyan))}
+  /* transcript */
+  .tr-row{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.04);
+    border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px}
+  .tr-row .ts{font-weight:800;color:var(--cyan);font-size:.85rem;white-space:nowrap;padding-top:10px;min-width:108px}
+  .tr-row textarea{flex:1;font:inherit;color:var(--text);background:#0a0716;
+    border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:9px 11px;min-height:44px;resize:vertical}
+  .tr-row textarea:focus{outline:2px solid var(--cyan);border-color:var(--cyan)}
+  .tr-row .del{border:0;background:transparent;color:var(--danger);font-size:1.2rem;cursor:pointer;padding:8px 4px}
+  .progress{height:10px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:10px;display:none}
+  .progress i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--pink),var(--cyan))}
+  /* preview */
+  .preview-flex{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+  .preview-col{flex:0 0 auto}
+  #previewCanvas{width:270px;height:480px;display:block;background:#000;border:1px solid var(--line);border-radius:14px}
+  .preview-side{flex:1;min-width:260px}
+  .preview-side .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .toggle{display:flex;gap:8px;align-items:center;font-size:.93rem;color:var(--muted)}
+  .toggle input{accent-color:var(--pink);width:18px;height:18px}
+  kbd{background:rgba(255,255,255,.1);border-radius:6px;padding:1px 7px;font:inherit;font-size:.85rem}
+  footer{margin-top:36px;color:var(--muted);font-size:.88rem;text-align:center}
+  footer a{color:var(--muted)}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <span class="eyebrow">GTA VI &middot; Leonida</span>
+  <h1>Leonida <span class="grad">Clip Cutter</span></h1>
+  <p class="sub">Upload klip GTA 6 lo &mdash; tool ini cari <b style="color:var(--text)">momen paling rame</b> dari audionya,
+  kasih <b style="color:var(--text)">subtitle Inggris</b> otomatis, terus export jadi short <b style="color:var(--text)">9:16</b>.
+  Semua jalan lokal di browser lo. Nggak ada upload ke server, nggak ada akun, nggak ada API key.</p>
+  <div class="chips">
+    <span class="chip"><b>100%</b> client-side</span>
+    <span class="chip">Auto highlight dari audio</span>
+    <span class="chip">Subtitle Inggris &middot; Whisper tiny.en</span>
+    <span class="chip">Export 9:16 + .srt</span>
+  </div>
+</header>
+
+<main>
+<!-- ============ 1. UPLOAD ============ -->
+<section class="card" id="step-upload">
+  <h2>1 &middot; Upload klip lo</h2>
+  <p class="lede">Klip dari rekaman / download VOD atau stream lo sendiri. GTA VI belum ada di PC, jadi belum ada capture langsung &mdash; upload file videonya di sini. File lo <b>nggak pernah keluar dari browser</b>.</p>
+  <div class="drop" id="dropzone" tabindex="0" role="button" aria-label="Upload video">
+    <div class="big">&#127909; Tarik klip ke sini, atau klik buat pilih file</div>
+    <div class="small">MP4 / WebM / MOV &middot; ada audio track-nya biar highlight + subtitle bisa jalan</div>
+  </div>
+  <input type="file" id="fileInput" accept="video/*" class="hidden">
+  <div class="fileinfo" id="fileInfo">Belum ada klip. Coba dulu pakai klip test di bawah kalau mau lihat cara kerjanya.</div>
+  <div style="margin-top:12px">
+    <button class="btn ghost small" id="demoBtn">Coba klip test (buatan, bukan gameplay GTA)</button>
+  </div>
+  <div class="note"><b>Klip test itu apa?</b> Video test pattern 30 detik yang gue generate sendiri (WebM): ada suara pidato JFK (public domain, 11 detik) + nada keras di detik 17 &amp; 24 buat ngetes deteksi highlight. <b>Bukan gameplay GTA 6</b> &mdash; cuma buat ngetes tool ini.</div>
+  <video id="srcVideo" class="hidden" playsinline preload="auto"></video>
+</section>
+
+<!-- ============ 2. HIGHLIGHT ============ -->
+<section class="card hidden" id="step-highlight">
+  <h2>2 &middot; Auto highlight</h2>
+  <p class="lede">Tool ini baca gelombang audionya dan cari jendela waktu paling keras / paling rame. Klik salah satu highlight buat preview, atau geser start &amp; end-nya manual.</p>
+  <div class="controls">
+    <div class="ctl"><label>Durasi klip highlight</label>
+      <div class="seg" id="lenSeg">
+        <button data-len="15" class="on">15 dtk</button>
+        <button data-len="30">30 dtk</button>
+        <button data-len="60">60 dtk</button>
+      </div>
+    </div>
+    <div class="ctl"><label>Sensitivitas: <span id="sensVal">50</span></label>
+      <input type="range" id="sensRange" min="0" max="100" value="50">
+    </div>
+    <div class="ctl"><label>Jumlah highlight: <span id="topNVal">5</span></label>
+      <input type="range" id="topNRange" min="1" max="8" value="5">
+    </div>
+    <div class="ctl"><button class="btn small" id="findBtn">Cari highlight</button></div>
+  </div>
+  <canvas id="waveCanvas" width="900" height="150"></canvas>
+  <div class="wave-hint">Klik waveform buat loncat ke detik itu. Kotak pink = highlight kepilih, kotak cyan = highlight lain.</div>
+  <div class="status" id="findStatus"></div>
+  <div class="hl-list" id="hlList"></div>
+  <div class="range-row">
+    <label>Start <input type="number" id="rangeStart" min="0" step="0.1" value="0"> dtk</label>
+    <label>End <input type="number" id="rangeEnd" min="0" step="0.1" value="15"> dtk</label>
+    <button class="btn ghost small" id="applyRangeBtn">Pakai range ini</button>
+    <button class="btn ghost small" id="previewRangeBtn">&#9654; Preview range ini</button>
+  </div>
+</section>
+
+<!-- ============ 3. SUBTITLE ============ -->
+<section class="card hidden" id="step-sub">
+  <h2>3 &middot; Subtitle Inggris (auto)</h2>
+  <p class="lede">Transkrip pakai Whisper <b>tiny.en</b> (model Inggris aja) yang jalan lokal di browser lo via transformers.js. Download pertama ~75 MB, abis itu kesimpen di cache browser. Kalau di klip lo nggak ada omongan, tool ini bakal bilang terus terang &mdash; nggak ngarang teks.</p>
+  <button class="btn" id="transcribeBtn">Transcribe highlight ini</button>
+  <button class="btn ghost" id="transcribeFullBtn">Transcribe full klip</button>
+  <div class="progress" id="trProgress"><i></i></div>
+  <div class="status" id="trStatus"></div>
+  <div id="transcriptList"></div>
+</section>
+
+<!-- ============ 4. PREVIEW 9:16 ============ -->
+<section class="card hidden" id="step-preview">
+  <h2>4 &middot; Preview 9:16</h2>
+  <p class="lede">Preview vertikal buat TikTok / Shorts / Reels. Video di-crop tengah ke 9:16 &mdash; geser posisi crop-nya kalau subjek lo nggak di tengah. Subtitle muncul gaya caption TikTok (kata yang lagi diomongin jadi kuning).</p>
+  <div class="preview-flex">
+    <div class="preview-col"><canvas id="previewCanvas" width="540" height="960"></canvas></div>
+    <div class="preview-side">
+      <div class="row">
+        <button class="btn small" id="playBtn">&#9654; Play highlight</button>
+        <button class="btn ghost small" id="pauseBtn">Pause</button>
+        <span class="status" id="timeLabel" style="margin-top:0">0.0 dtk</span>
+      </div>
+      <div class="row">
+        <label class="toggle" style="flex:1;min-width:220px">Posisi crop horizontal
+          <input type="range" id="cropRange" min="0" max="100" value="50" style="flex:1">
+        </label>
+      </div>
+      <div class="row">
+        <label class="toggle"><input type="checkbox" id="subToggle" checked> Tampilkan subtitle di preview</label>
+      </div>
+      <div class="row">
+        <label class="toggle"><input type="checkbox" id="loopToggle" checked> Loop dalam range highlight</label>
+      </div>
+      <div class="note"><b>Catatan export:</b> video hasil export itu rekaman dari preview ini (canvas + audio asli) &mdash; formatnya <b>.webm</b>, bukan .mp4. TikTok, YouTube Shorts &amp; Reels nerima .webm. Kalau lo butuh .mp4, convert sekali pakai ffmpeg: <kbd>ffmpeg -i hasil.webm -c:v libx264 -c:a aac hasil.mp4</kbd></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. EXPORT ============ -->
+<section class="card hidden" id="step-export">
+  <h2>5 &middot; Export</h2>
+  <p class="lede">Download hasil akhirnya. Video = highlight yang kepilih, 9:16, subtitle nempel di videonya. SRT = file subtitle yang sama (waktunya relatif dari awal klip hasil export).</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn teal" id="exportVideoBtn">&#11015; Download video (.webm)</button>
+    <button class="btn" id="exportSrtBtn">&#11015; Download subtitle (.srt)</button>
+  </div>
+  <div class="status" id="exportStatus"></div>
+  <div class="note"><b>Kenapa .webm, bukan .mp4?</b> Biar semua jalan lokal tanpa server: browser ngerekam preview pakai MediaRecorder. ffmpeg.wasm butuh download ~30 MB + header server khusus (COOP/COEP) yang GitHub Pages nggak kasih &mdash; jadi MediaRecorder yang kepilih, dan udah dites jalan.</div>
+</section>
+
+<section class="card">
+  <h2>Cara pakai, singkat</h2>
+  <p class="lede" style="margin-bottom:0">1) Upload klip &rarr; 2) pilih highlight (atau atur manual) &rarr; 3) transcribe buat subtitle Inggris (bisa diedit teksnya) &rarr; 4) cek preview 9:16 &rarr; 5) export video + .srt. Kalau audionya sepi atau nggak ada omongan, tool ini ngomong jujur &mdash; highlight dari energi audio doang, subtitle cuma dari yang beneran kedengeran.</p>
+</section>
+</main>
+
+<footer>
+  Leonida Clip Cutter &middot; semua proses lokal di browser lo, file nggak pernah di-upload kemana-mana.<br>
+  Subtitle: Whisper tiny.en via <a href="https://github.com/xenova/transformers.js" target="_blank" rel="noopener">transformers.js</a> &middot;
+  Tool lain: <a href="https://daniular.github.io/gta6-money-optimizer/">Leonida Money Optimizer</a> &middot;
+  <a href="https://daniular.github.io/gta6-cheat-tool/">Leonida Cheat Tool</a>
+</footer>
+</div>
+
+<script>
+"use strict";
+/* Leonida Clip Cutter — all client-side.
+   1) decode audio -> RMS per 0.1s -> sliding-window highlight search
+   2) Whisper tiny.en (transformers.js, local) -> EN transcript w/ timestamps
+   3) 9:16 canvas preview (center crop + subtitle overlay)
+   4) export: MediaRecorder(canvas.captureStream + video audio) -> .webm ; SRT download */
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+const fmtT = s => { s=Math.max(0,s); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), sec=s%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+sec.toFixed(1).padStart(4,"0"); };
+const fmtSrt = s => { s=Math.max(0,s); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), sec=Math.floor(s%60), ms=Math.round((s%1)*1000);
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")},${String(ms).padStart(3,"0")}`; };
+
+const state = {
+  fileName:"", duration:0, audioBuffer:null, rms:[], binSec:0.1,
+  highlights:[], selected:-1, rangeStart:0, rangeEnd:15,
+  clipLen:15, sensitivity:50, topN:5,
+  segments:[], /* {start,end,text,words?[{start,end,text}]} */
+  transcribing:false, transcriber:null, modelLoading:false,
+  cropPos:0.5, showSubs:true, loop:true, playing:false,
+  audioCtx:null, mediaSrc:null, audioDest:null, recChunks:[], recording:false,
+};
+const video = $("srcVideo");
+const previewCanvas = $("previewCanvas");
+const pctx = previewCanvas.getContext("2d");
+
+/* ---------- upload ---------- */
+const dropzone = $("dropzone"), fileInput = $("fileInput");
+dropzone.addEventListener("click", () => fileInput.click());
+dropzone.addEventListener("keydown", e => { if (e.key==="Enter"||e.key===" ") fileInput.click(); });
+fileInput.addEventListener("change", () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+["dragover","dragenter"].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove("over"); }));
+dropzone.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
+$("demoBtn").addEventListener("click", async () => {
+  $("fileInfo").innerHTML = "Lagi ngambil klip test…";
+  try {
+    const res = await fetch("test-clip.webm");
+    if (!res.ok) throw new Error("HTTP "+res.status);
+    const blob = await res.blob();
+    loadFile(new File([blob], "test-clip.webm", {type:"video/webm"}), true);
+  } catch (err) { $("fileInfo").innerHTML = "Klip test gagal dimuat: "+err.message; }
+});
+
+async function loadFile(file, isDemo=false) {
+  resetState();
+  state.fileName = file.name;
+  $("fileInfo").innerHTML = `File: <b>${escapeHtml(file.name)}</b> (${(file.size/1048576).toFixed(1)} MB)${isDemo?" — <b>klip test buatan, BUKAN gameplay GTA 6</b>":""} — lagi baca audio…`;
+  const url = URL.createObjectURL(file);
+  try { await new Promise((res, rej) => { video.onloadedmetadata = res; video.onerror = () => rej(new Error("video nggak bisa dibaca browser ini")); video.src = url; }); }
+  catch (err) { $("fileInfo").innerHTML = "Gagal baca file: "+err.message; return; }
+  state.duration = video.duration;
+  if (!isFinite(state.duration) || state.duration <= 0) { $("fileInfo").innerHTML = "Durasi video nggak kebaca. Coba file lain."; return; }
+  // decode audio
+  try {
+    const buf = await file.arrayBuffer();
+    const ctx = state.audioCtx || (state.audioCtx = new (window.AudioContext||window.webkitAudioContext)());
+    if (ctx.state === "suspended") await ctx.resume();
+    state.audioBuffer = await ctx.decodeAudioData(buf);
+  } catch (err) {
+    state.audioBuffer = null;
+    $("fileInfo").innerHTML = `File: <b>${escapeHtml(file.name)}</b> — durasi ${state.duration.toFixed(1)} dtk, tapi <b>audionya nggak bisa di-decode</b> (${escapeHtml(err.message)}). Highlight &amp; subtitle butuh audio track.`;
+    return;
+  }
+  computeRMS();
+  $("fileInfo").innerHTML = `File: <b>${escapeHtml(file.name)}</b> (${(file.size/1048576).toFixed(1)} MB) &middot; durasi <b>${state.duration.toFixed(1)} dtk</b> &middot; audio OK (${state.audioBuffer.numberOfChannels}ch, ${state.audioBuffer.sampleRate} Hz)${isDemo?" — <b>klip test buatan, BUKAN gameplay GTA 6</b>":""}`;
+  ["step-highlight","step-sub","step-preview","step-export"].forEach(id => $(id).classList.remove("hidden"));
+  findHighlights();
+  video.currentTime = 0;
+  drawPreviewFrame();
+}
+
+function resetState() {
+  state.highlights=[]; state.selected=-1; state.segments=[];
+  state.rangeStart=0; state.rangeEnd=15;
+  $("hlList").innerHTML=""; $("transcriptList").innerHTML="";
+  $("trStatus").textContent=""; $("exportStatus").textContent=""; $("findStatus").textContent="";
+  $("trProgress").style.display="none";
+  pauseVideo();
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- audio analysis ---------- */
+function computeRMS() {
+  const buf = state.audioBuffer, ch0 = buf.getChannelData(0);
+  const ch1 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : null;
+  const bin = Math.max(1, Math.floor(buf.sampleRate * state.binSec));
+  const n = Math.floor(ch0.length / bin);
+  state.rms = new Float32Array(n);
+  for (let i=0;i<n;i++){
+    let sum=0;
+    for (let j=0;j<bin;j+=4){ const a=ch0[i*bin+j], b=ch1?ch1[i*bin+j]:a; sum += (a*a+b*b)/2; }
+    state.rms[i] = Math.sqrt(sum / Math.ceil(bin/4));
+  }
+}
+
+function findHighlights() {
+  if (!state.rms.length) return;
+  const L = Math.min(state.clipLen, state.duration);
+  const winBins = Math.max(1, Math.round(L / state.binSec));
+  const stepBins = Math.max(1, Math.round(0.5 / state.binSec));
+  let gmax=0, gmean=0;
+  for (const v of state.rms){ gmax=Math.max(gmax,v); gmean+=v; }
+  gmean/=state.rms.length;
+  // sensitivity: higher = lower threshold = more candidates. 0->0.8x range above mean, 100->0.1x
+  const frac = 0.8 - (state.sensitivity/100)*0.7;
+  const thresh = gmean + frac*(gmax-gmean);
+  const cands=[];
+  for (let s=0; s+winBins<=state.rms.length; s+=stepBins){
+    let sum=0, peak=0;
+    for (let i=s;i<s+winBins;i++){ sum+=state.rms[i]; peak=Math.max(peak,state.rms[i]); }
+    const score=sum/winBins;
+    if (score>=thresh) cands.push({start:s*state.binSec, end:(s+winBins)*state.binSec, score, peak});
+  }
+  cands.sort((a,b)=>b.score-a.score);
+  const picked=[], minGap=L*0.5;
+  for (const c of cands){
+    if (picked.length>=state.topN) break;
+    if (picked.every(p=>Math.abs(p.start-c.start)>=minGap)) picked.push(c);
+  }
+  // fallback: if threshold too strict, just take top windows by score
+  if (!picked.length){
+    const all=[];
+    for (let s=0; s+winBins<=state.rms.length; s+=stepBins){
+      let sum=0; for (let i=s;i<s+winBins;i++) sum+=state.rms[i];
+      all.push({start:s*state.binSec, end:(s+winBins)*state.binSec, score:sum/winBins, peak:0});
+    }
+    all.sort((a,b)=>b.score-a.score);
+    for (const c of all){ if (picked.length>=state.topN) break;
+      if (picked.every(p=>Math.abs(p.start-c.start)>=minGap)) picked.push(c); }
+  }
+  picked.sort((a,b)=>a.start-b.start);
+  const maxScore = picked.reduce((m,p)=>Math.max(m,p.score), 0) || 1;
+  picked.forEach(p=>p.norm=p.score/maxScore);
+  state.highlights=picked;
+  renderHighlights();
+  const st=$("findStatus");
+  if (!picked.length) { st.textContent="Nggak ketemu jendela highlight — audionya terlalu rata. Coba turunin sensitivitas atau atur range manual."; st.className="status warn"; }
+  else { st.textContent=`Ketemu ${picked.length} highlight (jendela ${L.toFixed(0)} dtk). Klik salah satu buat preview.`; st.className="status ok";
+    selectHighlight(0, false); }
+  drawWaveform();
+}
+
+function renderHighlights(){
+  const list=$("hlList"); list.innerHTML="";
+  state.highlights.forEach((h,i)=>{
+    const d=document.createElement("div");
+    d.className="hl"+(i===state.selected?" sel":"");
+    d.innerHTML=`<div class="rank">#${i+1}</div>
+      <div class="meta"><b>${fmtT(h.start)} &ndash; ${fmtT(h.end)}</b>
+      <span>energi rata-rata ${(h.norm*100).toFixed(0)}% dari highlight terkuat</span>
+      <div class="bar"><i style="width:${(h.norm*100).toFixed(0)}%"></i></div></div>
+      <button class="btn ghost small" data-act="preview">Preview</button>`;
+    d.addEventListener("click", e=>{ if(e.target.dataset.act==="preview"){ selectHighlight(i,true); } else selectHighlight(i,false); });
+    list.appendChild(d);
+  });
+}
+
+function selectHighlight(i, autoplay){
+  if (!state.highlights[i]) return;
+  state.selected=i;
+  const h=state.highlights[i];
+  state.rangeStart=h.start; state.rangeEnd=Math.min(h.end, state.duration);
+  $("rangeStart").value=state.rangeStart.toFixed(1);
+  $("rangeEnd").value=state.rangeEnd.toFixed(1);
+  renderHighlights(); drawWaveform();
+  video.currentTime=state.rangeStart;
+  drawPreviewFrame();
+  if (autoplay) playVideo();
+}
+
+$("lenSeg").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  document.querySelectorAll("#lenSeg button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); state.clipLen=parseInt(b.dataset.len,10); findHighlights();
+});
+$("sensRange").addEventListener("input", e=>{ state.sensitivity=+e.target.value; $("sensVal").textContent=e.target.value; });
+$("sensRange").addEventListener("change", findHighlights);
+$("topNRange").addEventListener("input", e=>{ state.topN=+e.target.value; $("topNVal").textContent=e.target.value; });
+$("topNRange").addEventListener("change", findHighlights);
+$("findBtn").addEventListener("click", findHighlights);
+$("applyRangeBtn").addEventListener("click", ()=>{
+  const s=clamp(parseFloat($("rangeStart").value)||0, 0, state.duration);
+  const e2=clamp(parseFloat($("rangeEnd").value)||0, 0, state.duration);
+  if (e2<=s){ $("findStatus").textContent="End harus lebih besar dari start."; $("findStatus").className="status err"; return; }
+  state.rangeStart=s; state.rangeEnd=e2; state.selected=-1;
+  renderHighlights(); drawWaveform(); video.currentTime=s; drawPreviewFrame();
+  $("findStatus").textContent=`Range manual dipakai: ${fmtT(s)} – ${fmtT(e2)}.`; $("findStatus").className="status ok";
+});
+$("previewRangeBtn").addEventListener("click", ()=>{ $("applyRangeBtn").click(); playVideo(); });
+
+/* ---------- waveform ---------- */
+const wave=$("waveCanvas"), wctx=wave.getContext("2d");
+function drawWaveform(){
+  const W=wave.width, H=wave.height;
+  wctx.clearRect(0,0,W,H);
+  wctx.fillStyle="#0a0716"; wctx.fillRect(0,0,W,H);
+  if (!state.rms.length) return;
+  // highlight windows
+  state.highlights.forEach((h,i)=>{
+    const x0=h.start/state.duration*W, x1=h.end/state.duration*W;
+    wctx.fillStyle = i===state.selected ? "rgba(255,46,136,.28)" : "rgba(34,211,238,.14)";
+    wctx.fillRect(x0,0,x1-x0,H);
+    wctx.strokeStyle = i===state.selected ? "#ff2e88" : "#22d3ee";
+    wctx.lineWidth = i===state.selected?2:1; wctx.strokeRect(x0,0.5,x1-x0,H-1);
+  });
+  // RMS bars
+  const max=Math.max(...state.rms, 1e-6);
+  const n=state.rms.length, bw=W/n;
+  wctx.fillStyle="rgba(243,238,252,.75)";
+  for (let i=0;i<n;i++){
+    const hgt=Math.max(1, state.rms[i]/max*(H-16));
+    wctx.fillRect(i*bw, (H-hgt)/2, Math.max(1,bw-0.5), hgt);
+  }
+  // playhead
+  const px=video.currentTime/state.duration*W;
+  wctx.strokeStyle="#ffd166"; wctx.lineWidth=2;
+  wctx.beginPath(); wctx.moveTo(px,0); wctx.lineTo(px,H); wctx.stroke();
+}
+wave.addEventListener("click", e=>{
+  if (!state.duration) return;
+  const r=wave.getBoundingClientRect();
+  const t=(e.clientX-r.left)/r.width*state.duration;
+  // click inside a highlight -> select it, else just seek
+  const idx=state.highlights.findIndex(h=>t>=h.start&&t<=h.end);
+  if (idx>=0) selectHighlight(idx,false);
+  video.currentTime=t; drawPreviewFrame(); drawWaveform();
+});
+
+/* ---------- transcription (Whisper tiny.en, local) ---------- */
+let transformersPromise=null;
+function loadTransformers(){
+  // transformers.min.js v2.17.2 is an ES module (ends with `export{...}`), so a
+  // classic <script src> fails with "Unexpected token 'export'" — dynamic import it.
+  if (transformersPromise) return transformersPromise;
+  transformersPromise=import("https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js");
+  return transformersPromise;
+}
+async function getTranscriber(progress){
+  if (state.transcriber) return state.transcriber;
+  const tf=await loadTransformers();
+  tf.env.allowLocalModels=false;
+  state.transcriber=await tf.pipeline("automatic-speech-recognition","Xenova/whisper-tiny.en",{
+    progress_callback:(p)=>{ if(p.status==="progress"&&p.progress!=null) progress(p.progress, `Download model: ${p.file} ${(p.progress*100).toFixed(0)}%`); else if(p.status) progress(null, p.status+": "+(p.file||"")); }
+  });
+  return state.transcriber;
+}
+async function audioSlice16k(start,end){
+  const buf=state.audioBuffer;
+  const sr=buf.sampleRate, s0=Math.floor(start*sr), s1=Math.min(buf.length, Math.floor(end*sr));
+  const len=Math.max(1, s1-s0);
+  const off=new OfflineAudioContext(1, Math.ceil(len/sr*16000), 16000);
+  const src=off.createBufferSource();
+  const tmp=off.createBuffer(buf.numberOfChannels, len, sr);
+  for (let c=0;c<buf.numberOfChannels;c++) tmp.getChannelData(c).set(buf.getChannelData(c).subarray(s0,s1));
+  src.buffer=tmp; src.connect(off.destination); src.start();
+  const out=await off.startRendering();
+  return out.getChannelData(0);
+}
+async function transcribe(start,end){
+  if (state.transcribing) return;
+  if (!state.audioBuffer){ $("trStatus").textContent="Belum ada audio — upload klip dulu."; $("trStatus").className="status err"; return; }
+  state.transcribing=true;
+  const btn=$("transcribeBtn"), btn2=$("transcribeFullBtn");
+  btn.disabled=btn2.disabled=true;
+  const bar=$("trProgress"); bar.style.display="block"; bar.firstElementChild.style.width="0%";
+  const st=$("trStatus"); st.className="status";
+  try{
+    st.textContent="Siapin audio…";
+    const audio=await audioSlice16k(start,end);
+    const setP=(p,msg)=>{ if(p!=null) bar.firstElementChild.style.width=(p*100).toFixed(0)+"%"; if(msg) st.textContent=msg; };
+    const pipe=await getTranscriber(setP);
+    st.textContent="Transcribe jalan (lokal, Whisper tiny.en)…";
+    bar.firstElementChild.style.width="100%";
+    let out;
+    try { out=await pipe(audio,{chunk_length_s:30,stride_length_s:5,return_timestamps:"word"}); }
+    catch(e){ out=await pipe(audio,{chunk_length_s:30,stride_length_s:5,return_timestamps:true}); }
+    const chunks=(out.chunks||[]).map(c=>({
+      start:(c.timestamp?c.timestamp[0]:0)+start,
+      end:(c.timestamp?c.timestamp[1]:0)+start,
+      text:(c.text||"").trim(),
+      words:(c.words||null)?.map(w=>({start:w.timestamp[0]+start,end:w.timestamp[1]+start,text:w.text}))
+    })).filter(c=>c.text);
+    // Whisper "word" timestamps return one chunk per word — merge them into
+    // phrase segments (split on gaps >0.8s, >8s, or >120 chars), keeping the
+    // per-word timestamps for the karaoke-style subtitle overlay.
+    const merged=[]; let cur=null;
+    for (const c of chunks){
+      const gap=cur?c.start-cur.end:0;
+      if (!cur || gap>0.8 || (c.end-cur.start)>8 || (cur.text.length+c.text.length)>120){
+        cur={start:c.start,end:c.end,text:c.text,
+             words:c.words?[...c.words]:[{start:c.start,end:c.end,text:c.text}]};
+        merged.push(cur);
+      } else {
+        cur.end=c.end; cur.text=(cur.text+" "+c.text).trim();
+        if (c.words) cur.words.push(...c.words);
+        else cur.words.push({start:c.start,end:c.end,text:c.text});
+      }
+    }
+    state.segments=merged;
+    renderTranscript();
+    if (!chunks.length){
+      st.textContent="Nggak kedeteksi omongan di range ini — audionya mungkin cuma musik / efek / sepi. Coba range lain atau transcribe full klip.";
+      st.className="status warn";
+    } else {
+      st.textContent=`Dapet ${chunks.length} segmen subtitle. Teksnya bisa diedit di bawah — hasil edit langsung kepakai di preview & export.`;
+      st.className="status ok";
+    }
+  }catch(err){
+    console.error(err);
+    st.textContent="Transcribe gagal: "+err.message+" — cek koneksi (model di-download dari Hugging Face pas pertama kali), terus coba lagi.";
+    st.className="status err";
+  }finally{
+    state.transcribing=false; btn.disabled=btn2.disabled=false;
+    setTimeout(()=>{ bar.style.display="none"; }, 600);
+  }
+}
+$("transcribeBtn").addEventListener("click", ()=>transcribe(state.rangeStart,state.rangeEnd));
+$("transcribeFullBtn").addEventListener("click", ()=>transcribe(0,state.duration));
+
+function renderTranscript(){
+  const list=$("transcriptList"); list.innerHTML="";
+  state.segments.forEach((seg,i)=>{
+    const row=document.createElement("div"); row.className="tr-row";
+    const ts=document.createElement("span"); ts.className="ts"; ts.textContent=fmtT(seg.start)+" – "+fmtT(seg.end);
+    const ta=document.createElement("textarea"); ta.value=seg.text; ta.setAttribute("aria-label","Subtitle text");
+    ta.addEventListener("input", ()=>{ seg.text=ta.value; });
+    const del=document.createElement("button"); del.className="del"; del.textContent="✕"; del.title="Hapus segmen ini";
+    del.addEventListener("click", ()=>{ state.segments.splice(i,1); renderTranscript(); });
+    row.append(ts,ta,del); list.appendChild(row);
+  });
+}
+
+/* ---------- 9:16 preview ---------- */
+function drawPreviewFrame(){
+  const W=previewCanvas.width, H=previewCanvas.height;
+  pctx.fillStyle="#000"; pctx.fillRect(0,0,W,H);
+  if (!video.videoWidth) return;
+  const vw=video.videoWidth, vh=video.videoHeight;
+  const cropW=vh*9/16, cropH=vh;
+  const maxX=Math.max(0, vw-cropW);
+  const sx=state.cropPos*maxX;
+  try{ pctx.drawImage(video, sx, 0, cropW, cropH, 0, 0, W, H); }catch(e){}
+  if (state.showSubs) drawSubtitleOverlay(video.currentTime);
+}
+function activeChunkAt(t){
+  return state.segments.find(s=>t>=s.start-0.05 && t<=s.end+0.3) || null;
+}
+function drawSubtitleOverlay(t){
+  const seg=activeChunkAt(t); if(!seg) return;
+  const W=previewCanvas.width, H=previewCanvas.height;
+  const cx=W/2, baseY=H*0.78;
+  pctx.textAlign="center"; pctx.textBaseline="middle";
+  const words = seg.words && seg.words.length ? seg.words : null;
+  const fontPx=44;
+  pctx.font=`900 ${fontPx}px Arial, sans-serif`;
+  if (!words){
+    drawCaptionLine(seg.text, cx, baseY, fontPx);
+    return;
+  }
+  // word-by-word, wrap to max 2 lines, active word yellow
+  const maxW=W-48;
+  const lines=[]; let cur=[];
+  for (const w of words){
+    const test=[...cur,w.text].join(" ");
+    if (pctx.measureText(test).width>maxW && cur.length){ lines.push(cur); cur=[w.text]; }
+    else cur.push(w.text);
+  }
+  if (cur.length) lines.push(cur);
+  const lineH=fontPx*1.25;
+  const y0=baseY-(lines.length-1)*lineH/2;
+  let wi=0;
+  lines.forEach((line,li)=>{
+    // find active word index within this line
+    const lineWords=line.map(txt=>words[wi++]);
+    const y=y0+li*lineH;
+    // measure total width for centering
+    const widths=lineWords.map(w=>pctx.measureText(w.text).width);
+    const gap=pctx.measureText(" ").width;
+    const total=widths.reduce((a,b)=>a+b,0)+gap*(lineWords.length-1);
+    let x=cx-total/2;
+    lineWords.forEach((w,j)=>{
+      const active = t>=w.start && t<=w.end;
+      pctx.font=`900 ${fontPx}px Arial, sans-serif`;
+      drawCaptionWord(w.text, x+widths[j]/2, y, fontPx, active);
+      x+=widths[j]+gap;
+    });
+  });
+}
+function drawCaptionLine(text,cx,y,fontPx){
+  pctx.font=`900 ${fontPx}px Arial, sans-serif`;
+  // wrap
+  const maxW=previewCanvas.width-48, words=text.split(/\s+/), lines=[]; let cur="";
+  for (const w of words){ const test=cur?cur+" "+w:w;
+    if (pctx.measureText(test).width>maxW && cur){ lines.push(cur); cur=w; } else cur=test; }
+  if (cur) lines.push(cur);
+  const lineH=fontPx*1.25, y0=y-(lines.length-1)*lineH/2;
+  lines.forEach((ln,i)=>drawCaptionWord(ln, cx, y0+i*lineH, fontPx, false));
+}
+function drawCaptionWord(text,cx,y,fontPx,active){
+  pctx.font=`900 ${fontPx}px Arial, sans-serif`;
+  pctx.lineJoin="round"; pctx.lineWidth=9;
+  pctx.strokeStyle="rgba(0,0,0,.92)";
+  pctx.strokeText(text,cx,y);
+  pctx.fillStyle=active?"#ffd166":"#ffffff";
+  pctx.fillText(text,cx,y);
+}
+$("cropRange").addEventListener("input", e=>{ state.cropPos=+e.target.value/100; drawPreviewFrame(); });
+$("subToggle").addEventListener("change", e=>{ state.showSubs=e.target.checked; drawPreviewFrame(); });
+$("loopToggle").addEventListener("change", e=>{ state.loop=e.target.checked; });
+$("playBtn").addEventListener("click", playVideo);
+$("pauseBtn").addEventListener("click", pauseVideo);
+function playVideo(){
+  if (!state.duration) return;
+  if (video.currentTime<state.rangeStart || video.currentTime>=state.rangeEnd) video.currentTime=state.rangeStart;
+  state.playing=true;
+  video.play().catch(err=>{ $("timeLabel").textContent="Play gagal: "+err.message; });
+}
+function pauseVideo(){ state.playing=false; try{ video.pause(); }catch(e){} }
+video.addEventListener("timeupdate", ()=>{
+  $("timeLabel").textContent=video.currentTime.toFixed(1)+" dtk / range "+fmtT(state.rangeStart)+"–"+fmtT(state.rangeEnd);
+  if (state.playing && video.currentTime>=state.rangeEnd){
+    if (state.loop) video.currentTime=state.rangeStart;
+    else pauseVideo();
+  }
+  drawWaveform();
+});
+(function loop(){
+  if (state.playing && !video.paused) drawPreviewFrame();
+  requestAnimationFrame(loop);
+})();
+
+/* ---------- export ---------- */
+function ensureAudioGraph(){
+  if (state.audioDest) return;
+  const ctx=state.audioCtx || (state.audioCtx=new (window.AudioContext||window.webkitAudioContext)());
+  state.mediaSrc=ctx.createMediaElementSource(video);
+  state.audioDest=ctx.createMediaStreamDestination();
+  state.mediaSrc.connect(state.audioDest);
+  state.mediaSrc.connect(ctx.destination);
+}
+function pickMime(){
+  const cands=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
+  for (const c of cands) if (window.MediaRecorder && MediaRecorder.isTypeSupported(c)) return c;
+  return "";
+}
+$("exportVideoBtn").addEventListener("click", async ()=>{
+  const st=$("exportStatus");
+  if (!state.duration){ st.textContent="Upload klip dulu."; st.className="status err"; return; }
+  if (state.recording) return;
+  if (!window.MediaRecorder){ st.textContent="Browser ini nggak support MediaRecorder — coba Chrome / Edge terbaru."; st.className="status err"; return; }
+  try{
+    ensureAudioGraph();
+    if (state.audioCtx.state==="suspended") await state.audioCtx.resume();
+    const mime=pickMime();
+    const canvasStream=previewCanvas.captureStream(30);
+    const tracks=[...canvasStream.getVideoTracks(), ...state.audioDest.stream.getAudioTracks()];
+    const rec=new MediaRecorder(new MediaStream(tracks), mime?{mimeType:mime,videoBitsPerSecond:8_000_000}:undefined);
+    const chunks=[];
+    rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+    const done=new Promise(res=>rec.onstop=res);
+    state.recording=true;
+    st.textContent="Lagi ngerekam export… (durasi "+(state.rangeEnd-state.rangeStart).toFixed(1)+" dtk, jalan real-time)"; st.className="status";
+    $("exportVideoBtn").disabled=true;
+    const wasLoop=state.loop; state.loop=false;
+    video.currentTime=state.rangeStart;
+    state.playing=true; // keep the rAF preview loop painting the canvas while recording
+    await video.play();
+    rec.start(250);
+    // stop when the range ends
+    await new Promise(res=>{
+      const chk=()=>{ if (video.currentTime>=state.rangeEnd || video.ended || video.paused) res(); else setTimeout(chk,100); };
+      chk();
+    });
+    if (rec.state!=="inactive") rec.stop();
+    video.pause(); state.playing=false; state.loop=wasLoop;
+    await done;
+    const blob=new Blob(chunks,{type:rec.mimeType||"video/webm"});
+    if (!blob.size){ throw new Error("hasil rekaman kosong (0 byte)"); }
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="leonida-highlight.webm";
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 10000);
+    st.textContent=`Video ke-download: leonida-highlight.webm (${(blob.size/1048576).toFixed(2)} MB, ${mime||"default codec"}). Cek hasilnya sebelum di-upload.`;
+    st.className="status ok";
+  }catch(err){
+    console.error(err);
+    st.textContent="Export video gagal: "+err.message; st.className="status err";
+  }finally{
+    state.recording=false; $("exportVideoBtn").disabled=false;
+  }
+});
+$("exportSrtBtn").addEventListener("click", ()=>{
+  const st=$("exportStatus");
+  if (!state.segments.length){ st.textContent="Belum ada subtitle — transcribe dulu (langkah 3)."; st.className="status err"; return; }
+  const rel=state.segments
+    .filter(s=>s.end>state.rangeStart && s.start<state.rangeEnd)
+    .map(s=>({start:Math.max(0,s.start-state.rangeStart), end:Math.max(0,s.end-state.rangeStart), text:s.text}));
+  const use=rel.length?rel:state.segments.map(s=>({start:s.start,end:s.end,text:s.text}));
+  let out="";
+  use.forEach((s,i)=>{ out+=(i+1)+"\n"+fmtSrt(s.start)+" --> "+fmtSrt(s.end)+"\n"+s.text+"\n\n"; });
+  const blob=new Blob([out],{type:"text/plain;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="leonida-highlight.srt"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 10000);
+  st.textContent=`Subtitle ke-download: leonida-highlight.srt (${use.length} cue, waktu relatif dari awal klip export).`;
+  st.className="status ok";
+});
+</script>
+</body>
+</html>
