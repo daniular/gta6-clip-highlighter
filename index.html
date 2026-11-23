@@ -691,7 +691,9 @@ function ensureAudioGraph(){
   state.mediaSrc.connect(ctx.destination);
 }
 function pickMime(){
-  const cands=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
+  // VP8 dulu: encode-nya jauh lebih ringan di HP daripada VP9 (VP9 8 Mbps
+  // real-time bikin tab HP kehabisan memori / freeze). Kualitas tetap oke.
+  const cands=["video/webm;codecs=vp8,opus","video/webm;codecs=vp9,opus","video/webm"];
   for (const c of cands) if (window.MediaRecorder && MediaRecorder.isTypeSupported(c)) return c;
   return "";
 }
@@ -706,9 +708,10 @@ $("exportVideoBtn").addEventListener("click", async ()=>{
     const mime=pickMime();
     const canvasStream=previewCanvas.captureStream(30);
     const tracks=[...canvasStream.getVideoTracks(), ...state.audioDest.stream.getAudioTracks()];
-    const rec=new MediaRecorder(new MediaStream(tracks), mime?{mimeType:mime,videoBitsPerSecond:8_000_000}:undefined);
+    const rec=new MediaRecorder(new MediaStream(tracks), mime?{mimeType:mime,videoBitsPerSecond:5_000_000}:undefined);
     const chunks=[];
     rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+    rec.onerror=e=>{ console.error("MediaRecorder error", e.error||e); st.textContent="Export gagal di tengah jalan: "+(e.error&&e.error.name?e.error.name:"recorder error")+" — coba klip yang lebih pendek atau refresh halaman."; st.className="status err"; try{ if(rec.state!=="inactive") rec.stop(); }catch(_){} };
     const done=new Promise(res=>rec.onstop=res);
     state.recording=true;
     st.textContent="Lagi ngerekam export… (durasi "+(state.rangeEnd-state.rangeStart).toFixed(1)+" dtk, jalan real-time)"; st.className="status";
